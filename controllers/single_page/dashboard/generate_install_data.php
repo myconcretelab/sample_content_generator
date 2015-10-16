@@ -11,21 +11,26 @@ class GenerateInstallData extends PageController {
 		$filesLink = $export->getFilesArchive();
 		$this->set('filesLink', REL_DIR_FILES_UPLOADED . '/tmp/' . $filesLink . '.zip');
 	}
-	
+
 	public function get_content_xml() {
 		$export = new ContentExporter();
 		$export->run();
-		$export->removeItem('packages', 'package', 'sample_content_generator');
-		$export->removeItem('singlepages', 'page', 'sample_content_generator');
 		// check packages
 		$xml = $export->output();
-		
+
+
+		// Keep retrying as some empty nodes may contain other empty nodes
+		while(true){
+				$xml_ref = $xml; // keep old version as reference
+				// Remove <node /> empty nodes
+				$xml = preg_replace('~<[^\\s>]+\\s*/>~si', null, $xml);
+				if($xml_ref === $xml) break;
+		}
 		$th = Loader::helper('text');
-		$xml = $th->formatXML($xml);
-		
+		$xml = $th->formatXML($xml);		
 		$this->set('outputContent', $xml);
 	}
-	
-	
-	
+
+
+
 }
